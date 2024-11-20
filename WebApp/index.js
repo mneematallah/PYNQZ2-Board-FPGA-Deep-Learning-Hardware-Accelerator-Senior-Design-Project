@@ -69,7 +69,8 @@
     const process_time = data.process_time;
     const distrubutions = _soft_max(res);
     console.log(distrubutions)
-    // console.log(res, process_time);
+    /* print to verify that communication between the board and this webpage work */
+    console.log(res, process_time);
     let index;
     for (index = 0; index < distrubutions.length; index++) {
       const element = _changeTwoDecimal(distrubutions[index]);
@@ -79,9 +80,10 @@
 
   }
   function predict(img, type = "cpu", net = "lenet") {
+    /* This URL must change depending on the IP address for the PYNQ board */
         $.ajax({
           type: "POST",
-          url: "http://127.0.0.1:5000/predict",
+          url: "http://192.168.50.32:5000/predict",
           data: {
             img,
             type,

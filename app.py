@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import base64
 from PIL import Image
 from io import BytesIO
 from LeNet import lenet_cpu, lenet_fpga
 app = Flask(__name__)
+CORS(app)
 @app.route('/')
 def hello_world():
     return "Hello world!"
@@ -23,6 +25,7 @@ def get_predict_cpu_lenet():
     else:
         res = []
         process_type = 0.0
+    print(res_dict)
     res_dict = {
         "res":tuple(res),
         "process_time": process_time
@@ -30,6 +33,6 @@ def get_predict_cpu_lenet():
     return jsonify(res_dict)
 
 
-
+# Alter this IP address to match the pynq board running the this server
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000)
+    app.run(host='192.168.50.32', port=5000)
