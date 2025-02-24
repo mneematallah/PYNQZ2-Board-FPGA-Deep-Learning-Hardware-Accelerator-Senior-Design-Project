@@ -83,7 +83,7 @@
     /* This URL must change depending on the IP address for the PYNQ board */
         $.ajax({
           type: "POST",
-          url: "http://192.168.50.32:5000/predict",
+          url: "http://192.168.50.31:5000/predict",
           data: {
             img,
             type,

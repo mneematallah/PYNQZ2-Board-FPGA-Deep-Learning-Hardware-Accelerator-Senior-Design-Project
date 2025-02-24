@@ -25,7 +25,6 @@ def get_predict_cpu_lenet():
     else:
         res = []
         process_type = 0.0
-    print(res_dict)
     res_dict = {
         "res":tuple(res),
         "process_time": process_time
@@ -35,4 +34,4 @@ def get_predict_cpu_lenet():
 
 # Alter this IP address to match the pynq board running the this server
 if __name__ == '__main__':
-    app.run(host='192.168.50.32', port=5000)
+    app.run(host='192.168.50.31', port=5000)
