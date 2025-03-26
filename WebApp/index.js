@@ -1,8 +1,11 @@
 (function () {
+  // ======== Canvas Setup ========
   var canvas = document.querySelector("#canvas");
   var context = canvas.getContext("2d");
   canvas.width = 280;
   canvas.height = 280;
+
+  // For drawing
   var Mouse = { x: 0, y: 0 };
   var lastMouse = { x: 0, y: 0 };
   context.fillStyle = "black";
@@ -11,6 +14,7 @@
   context.lineWidth = 15;
   context.lineJoin = context.lineCap = "round";
 
+  // Mouse events for drawing
   canvas.addEventListener(
     "mousemove",
     function (e) {
@@ -23,7 +27,7 @@
   );
   canvas.addEventListener(
     "mousedown",
-    function (e) {
+    function () {
       canvas.addEventListener("mousemove", onPaint, false);
     },
     false
@@ -35,113 +39,150 @@
     },
     false
   );
-  _predict_btn_init();
-  _clear_btn_init();
-  _slide_bar_init();
-  // paint callback
-  var onPaint = function () {
+
+  function onPaint() {
     context.lineWidth = context.lineWidth;
     context.lineJoin = "round";
     context.lineCap = "round";
     context.strokeStyle = context.color;
-
     context.beginPath();
     context.moveTo(lastMouse.x, lastMouse.y);
     context.lineTo(Mouse.x, Mouse.y);
     context.closePath();
     context.stroke();
+  }
+
+  // ======== Canvas Buttons ========
+  // Predict CPU / FPGA from the drawn canvas
+  $("#predictButton").on("click", function () {
+    var img = canvas.toDataURL("image/jpeg");
+    predict(img, "cpu", "lenet");
+  });
+
+  $("#predictFpga").on("click", function () {
+    var img = canvas.toDataURL("image/jpeg");
+    predict(img, "fpga", "lenet");
+  });
+
+  $("#clearButton").on("click", function () {
+    context.clearRect(0, 0, 280, 280);
+    context.fillStyle = "black";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  });
+
+  // Slider for line width
+  var slider = document.getElementById("myRange");
+  var output = document.getElementById("sliderValue");
+  output.innerHTML = slider.value;
+  slider.oninput = function () {
+    output.innerHTML = this.value;
+    context.lineWidth = $(this).val();
   };
-  function _predict_btn_init() {
-    /* SUBMIT BUTTON */
-    var predictButton = $("#predictButton");
-    var predictFpgaButton = $('#predictFpga')
-    predictFpgaButton.on("click", function () {
-      var img = canvas.toDataURL("image/jpeg");
-      predict(img,type="fpga",net="lenet");
+
+  // ======== Camera Capture Logic ========
+  // We'll store the captured image data in this variable
+  let capturedData = null;
+
+  // 1) Capture Image
+  $("#captureButton").on("click", function () {
+    $.ajax({
+      type: "POST",
+      url: "http://192.168.1.27:9090/capture", // Adjust IP if needed
+      success: function (data) {
+        capturedData = data.img; // store the base64 string
+        // Show the image
+        $("#capturedImg").attr("src", capturedData).show();
+      },
+      error: function (err) {
+        console.error("Error capturing image", err);
+      }
     });
-    predictButton.on("click", function () {
-      var img = canvas.toDataURL("image/jpeg");
-      predict(img);
+  });
+
+  // 2) Predict CPU on the captured image
+  $("#predictCpuCaptured").on("click", function () {
+    if (!capturedData) {
+      alert("No image captured yet!");
+      return;
+    }
+    predict(capturedData, "cpu", "lenet");
+  });
+
+  // 3) Predict FPGA on the captured image
+  $("#predictFpgaCaptured").on("click", function () {
+    if (!capturedData) {
+      alert("No image captured yet!");
+      return;
+    }
+    predict(capturedData, "fpga", "lenet");
+  });
+
+  // 4) Clear Captured Image
+  $("#clearCapturedImage").on("click", function () {
+    capturedData = null;
+    $("#capturedImg").attr("src", "").hide();
+  });
+
+  // ======== Common Predict Function ========
+  function predict(img, type = "cpu", net = "lenet") {
+    $.ajax({
+      type: "POST",
+      url: "http://192.168.1.27:9090/predict",
+      data: { img, type, net },
+      success: function (data) {
+        _update_table(data, type, net);
+      },
+      error: function (err) {
+        console.error("Error in predict request:", err);
+      }
     });
   }
+
+  // ======== Update the Table ========
   function _update_table(data, type = "cpu", net = "lenet") {
     const res = data.res;
     const process_time = data.process_time;
-    const distrubutions = _soft_max(res);
-    console.log(distrubutions)
-    /* print to verify that communication between the board and this webpage work */
-    console.log(res, process_time);
-    let index;
-    for (index = 0; index < distrubutions.length; index++) {
-      const element = _changeTwoDecimal(distrubutions[index]);
-      $("#"+net+type).children("td").eq(index+1).html(element);
+    const distributions = _soft_max(res);
+
+    // Update row: #lenetcpu or #lenetfpga
+    const rowId = "#" + net + type; // e.g. "#lenetcpu" or "#lenetfpga"
+
+    for (let i = 0; i < distributions.length; i++) {
+      const element = _changeTwoDecimal(distributions[i]);
+      $(rowId)
+        .children("td")
+        .eq(i + 1)
+        .html(element);
     }
-    $("#"+net+type).children("td").eq(index+1).html(_changeTwoDecimal(process_time));
+    // The last cell is Time Cost
+    $(rowId)
+      .children("td")
+      .eq(distributions.length + 1)
+      .html(_changeTwoDecimal(process_time));
+  }
 
-  }
-  function predict(img, type = "cpu", net = "lenet") {
-    /* This URL must change depending on the IP address for the PYNQ board */
-        $.ajax({
-          type: "POST",
-          url: "http://192.168.50.31:5000/predict",
-          data: {
-            img,
-            type,
-            net
-          },
-          success: function (data) {
-            _update_table(data, type, net);
-          },
-        });
-  }
-  function _clear_btn_init() {
-    /* CLEAR BUTTON */
-    var clearButton = $("#clearButton");
-
-    clearButton.on("click", function () {
-      context.clearRect(0, 0, 280, 280);
-      context.fillStyle = "black";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-    });
-  }
-  function _slide_bar_init() {
-    /* LINE WIDTH */
-    var slider = document.getElementById("myRange");
-    var output = document.getElementById("sliderValue");
-    output.innerHTML = slider.value;
-    slider.oninput = function () {
-      output.innerHTML = this.value;
-      context.lineWidth = $(this).val();
-    };
-    $("#lineWidth").change(function () {
-      context.lineWidth = $(this).val();
-    });
-  }
-  function _soft_max(arr){
+  // Convert raw scores to probabilities
+  function _soft_max(arr) {
     let _total = 0;
-    for (let index = 0; index < arr.length; index++) {
-      const element = arr[index];
-      arr[index] = element/100;
+    // Scale down by 100 if your model outputs are 0-100
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = arr[i] / 100.0;
     }
-    for (let index = 0; index < arr.length; index++) {
-      const element = arr[index];
-      _total += Math.exp(element);
+    for (let i = 0; i < arr.length; i++) {
+      _total += Math.exp(arr[i]);
     }
-    for (let index = 0; index < arr.length; index++) {
-      const element = arr[index];
-      let temp = Math.exp(element) / _total;
-      arr[index] = temp;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = Math.exp(arr[i]) / _total;
     }
     return arr;
   }
+
   function _changeTwoDecimal(x) {
     var f_x = parseFloat(x);
     if (isNaN(f_x)) {
       alert("function:changeTwoDecimal->parameter error");
       return false;
     }
-    f_x = Math.round(f_x * 100) / 100;
-
-    return f_x;
+    return Math.round(f_x * 100) / 100;
   }
 })();
