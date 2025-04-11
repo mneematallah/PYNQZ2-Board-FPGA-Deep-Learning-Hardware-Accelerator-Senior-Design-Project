@@ -1,116 +1,558 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PYNQ Accelerator</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PYNQ Accelerator</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header clearfix">
+      <nav>
+        <ul class="nav nav-pills pull-right">
+          <li role="presentation" class="active"><a href="#">Home</a></li>
+          <li role="presentation"><a href="https://github.com/LeiWang1999/Pynq-Accelerator/">About</a></li>
+        </ul>
+      </nav>
+      <h3 class="text-muted">PYNQ Accelerator</h3>
+    </div>
 
-    <!-- Bootstrap core CSS -->
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-      crossorigin="anonymous"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-
-  <body>
-    <div class="container">
-      <div class="header clearfix">
-        <nav>
-          <ul class="nav nav-pills pull-right">
-            <li role="presentation" class="active"><a href="#">Home</a></li>
-            <li role="presentation">
-              <a href="https://github.com/LeiWang1999/Pynq-Accelerator/">About</a>
-            </li>
-          </ul>
-        </nav>
-        <h3 class="text-muted">PYNQ Accelerator</h3>
+    <!-- DRAWING SECTION -->
+    <div class="jumbotron text-center">
+      <h3 class="jumbotronHeading">Draw a Digit!</h3>
+      <div class="slidecontainer">
+        <p>Line width:</p>
+        <input type="range" min="10" max="50" value="15" id="myRange" />
+        <p>Value: <span id="sliderValue"></span></p>
       </div>
-
-      <!-- =========== DRAWING SECTION =========== -->
-      <div class="jumbotron" style="text-align: center;">
-        <h3 class="jumbotronHeading">Draw a Digit!</h3>
-        <div class="slidecontainer">
-          <p>Line width:</p>
-          <input type="range" min="10" max="50" value="15" id="myRange" />
-          <p>Value: <span id="sliderValue"></span></p>
-        </div>
-
-        <div class="canvasDiv">
-          <canvas id="canvas" width="280" height="280"></canvas>
-          <br />
-          <p>
-            <button class="btn btn-success" id="predictButton">Predict CPU (Canvas)</button>
-            <button class="btn btn-success" id="predictFpga">Predict FPGA (Canvas)</button>
-            <button class="btn btn-primary" id="clearButton">Clear Canvas</button>
-          </p>
-        </div>
+      <div class="canvasDiv">
+        <canvas id="canvas" width="280" height="280"></canvas><br/>
+        <button class="btn btn-success" id="predictButton">Predict CPU (Canvas)</button>
+        <button class="btn btn-success" id="predictFpga">Predict FPGA (Canvas)</button>
+        <button class="btn btn-primary" id="clearButton">Clear Canvas</button>
       </div>
+    </div>
 
-      <!-- =========== CAMERA CAPTURE SECTION =========== -->
-      <div class="jumbotron" style="text-align: center;">
-        <h3 class="jumbotronHeading">Camera Capture</h3>
-        <p>Click below to take a picture from the USB camera on your PYNQ board.</p>
-
-        <div>
-          <button class="btn btn-warning" id="captureButton">Capture Image</button>
-          <button class="btn btn-success" id="predictCpuCaptured">Predict CPU (Captured)</button>
-          <button class="btn btn-success" id="predictFpgaCaptured">Predict FPGA (Captured)</button>
-          <button class="btn btn-primary" id="clearCapturedImage">Clear Captured Image</button>
-        </div>
-
-        <div style="margin-top:20px;">
-          <img
-            id="capturedImg"
-            style="display:none; width: 200px; height: 200px; border: 1px solid #ccc;"
-            alt="Captured Image"
-          />
-        </div>
+    <!-- CAMERA CAPTURE SECTION -->
+    <div class="jumbotron text-center">
+      <h3 class="jumbotronHeading">Camera Capture</h3>
+      <p>Click to take a picture from the USB camera on your PYNQ board.</p>
+      <button class="btn btn-warning" id="captureButton">Capture Image</button>
+      <button class="btn btn-success" id="predictCpuCaptured">Predict CPU (Captured)</button>
+      <button class="btn btn-success" id="predictFpgaCaptured">Predict FPGA (Captured)</button>
+      <button class="btn btn-primary" id="clearCapturedImage">Clear Captured Image</button>
+      <div style="margin-top:20px;">
+        <img id="capturedImg" style="display:none; width:200px; height:200px; border:1px solid #ccc;" alt="Captured Image"/>
       </div>
+    </div>
 
-      <!-- =========== RESULTS TABLE =========== -->
-      <div>
-        <table class="table table-bordered" id="result">
+    <!-- CALL SECTION -->
+    <div class="jumbotron text-center">
+      <h3 class="jumbotronHeading">Make a Phone Call</h3>
+      <div class="form-inline" style="margin-bottom:20px;">
+        <input id="phoneInput" type="tel" class="form-control" placeholder="+15551234567" required style="width:200px;"/>
+        <button class="btn btn-primary" id="assembleFpgaNumber">Assemble FPGA Phone #</button>
+        <button class="btn btn-danger" id="callButton">📞 Call Number</button>
+      </div>
+    </div>
+
+        <!-- PHONE NUMBER SEGMENTATION SECTION -->
+    <div class="jumbotron text-center">
+      <h3 class="jumbotronHeading">Segment Phone Number</h3>
+      <p>
+        Capture an image of a paper containing a 10-digit phone number, then segment it into
+        individual digits. The 10 static slots below will be filled with each digit (if found).
+      </p>
+      <button class="btn btn-info" id="segmentButton">Segment Image</button>
+      <!-- New buttons for all CPU and FPGA predictions -->
+      <button class="btn btn-warning" id="predictAllCpu">Predict All CPU</button>
+      <button class="btn btn-warning" id="predictAllFpga">Predict All FPGA</button>
+    </div>
+
+
+    <!-- 10 STATIC DIGIT SLOTS (each has an image + CPU/FPGA tables) -->
+    <div class="jumbotron text-center">
+      <h3>Segmented Digits (Static 10 Slots)</h3>
+
+      <!-- Repeat a block for each digit slot 1..10 -->
+      <!-- Digit 1 -->
+      <div id="digit-slot-1" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 1</h4>
+        <img id="digitImg1" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 1"/><br/>
+        <button class="btn btn-success" id="predict1cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict1fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit1_cpu" style="margin-top:10px;">
           <thead>
             <tr>
-              <th></th>
-              <th>0</th>
-              <th>1</th>
-              <th>2</th>
-              <th>3</th>
-              <th>4</th>
-              <th>5</th>
-              <th>6</th>
-              <th>7</th>
-              <th>8</th>
-              <th>9</th>
-              <th>Time Cost</th>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
             </tr>
           </thead>
           <tbody>
-            <tr id="lenetcpu">
-              <td>LeNet-CPU</td>
-              <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
-              <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
               <td>0.00</td>
             </tr>
-            <tr id="lenetfpga">
-              <td>LeNet-FPGA</td>
-              <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
-              <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit1_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
               <td>0.00</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <footer class="footer">
-        <p>&copy; 2023 PYNQ Accelerator Demo</p>
-      </footer>
+      <!-- Digit 2 -->
+      <div id="digit-slot-2" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 2</h4>
+        <img id="digitImg2" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 2"/><br/>
+        <button class="btn btn-success" id="predict2cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict2fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit2_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit2_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 3 -->
+      <div id="digit-slot-3" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 3</h4>
+        <img id="digitImg3" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 3"/><br/>
+        <button class="btn btn-success" id="predict3cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict3fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit3_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit3_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 4 -->
+      <div id="digit-slot-4" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 4</h4>
+        <img id="digitImg4" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 4"/><br/>
+        <button class="btn btn-success" id="predict4cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict4fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit4_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit4_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 5 -->
+      <div id="digit-slot-5" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 5</h4>
+        <img id="digitImg5" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 5"/><br/>
+        <button class="btn btn-success" id="predict5cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict5fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit5_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit5_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 6 -->
+      <div id="digit-slot-6" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 6</h4>
+        <img id="digitImg6" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 6"/><br/>
+        <button class="btn btn-success" id="predict6cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict6fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit6_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit6_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 7 -->
+      <div id="digit-slot-7" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 7</h4>
+        <img id="digitImg7" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 7"/><br/>
+        <button class="btn btn-success" id="predict7cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict7fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit7_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit7_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 8 -->
+      <div id="digit-slot-8" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 8</h4>
+        <img id="digitImg8" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 8"/><br/>
+        <button class="btn btn-success" id="predict8cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict8fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit8_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit8_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 9 -->
+      <div id="digit-slot-9" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 9</h4>
+        <img id="digitImg9" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 9"/><br/>
+        <button class="btn btn-success" id="predict9cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict9fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit9_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit9_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Digit 10 -->
+      <div id="digit-slot-10" style="border:1px solid #ccc; margin:10px; padding:10px; display:inline-block;">
+        <h4>Digit 10</h4>
+        <img id="digitImg10" style="width:100px; height:100px; border:1px solid #ccc;" alt="Digit 10"/><br/>
+        <button class="btn btn-success" id="predict10cpu">Predict CPU</button>
+        <button class="btn btn-success" id="predict10fpga">Predict FPGA</button>
+        <table class="table table-bordered" id="digit10_cpu" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-CPU</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table table-bordered" id="digit10_fpga" style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>LeNet-FPGA</th>
+              <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+              <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td>
+              <td>0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <script src="index.js"></script>
-  </body>
+    <!-- RESULTS TABLE (For canvas predictions) -->
+    <div>
+      <table class="table table-bordered" id="result">
+        <thead>
+          <tr>
+            <th></th>
+            <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+            <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+            <th>Time Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="lenetcpu">
+            <td>LeNet-CPU</td>
+            <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
+            <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
+            <td>0.00</td>
+          </tr>
+          <tr id="lenetfpga">
+            <td>LeNet-FPGA</td>
+            <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
+            <td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td><td>0.1</td>
+            <td>0.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2023 PYNQ Accelerator Demo</p>
+    </footer>
+  </div>
+
+  <!-- jQuery + your custom script -->
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="index.js"></script>
+</body>
 </html>
