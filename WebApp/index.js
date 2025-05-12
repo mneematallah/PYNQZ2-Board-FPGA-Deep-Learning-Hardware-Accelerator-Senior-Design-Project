@@ -53,7 +53,7 @@ $(document).ready(function() {
   // ======== Camera Capture ========
   let capturedData = null;
   $("#captureButton").click(() => {
-    $.post("http://192.168.1.27:5000/capture")
+    $.post("http://192.168.2.99:5000/capture")
       .done(data => {
         capturedData = data.img;
         $("#capturedImg").attr("src", capturedData).show();
@@ -86,14 +86,14 @@ $(document).ready(function() {
       alert("Please enter a valid phone number (E.164).");
       return;
     }
-    $.post("http://192.168.1.27:5000/call", { to })
+    $.post("http://localhost:5002/call", { to })
       .done(resp => alert("Calling… Call SID: " + resp.sid))
       .fail(err => alert("Call failed: " + (err.responseJSON?.error || err.statusText)));
   });
 
   // ======== General Predict & Update Table (Canvas or Captured) ========
   function predict(img, type = "cpu", net = "lenet") {
-    $.post("http://192.168.1.27:5000/predict", { img, type, net })
+    $.post("http://192.168.2.99:5000/predict", { img, type, net })
       .done(data => updateTable(data, type, net))
       .fail(err => console.error("Predict failed:", err));
   }
@@ -113,7 +113,7 @@ $(document).ready(function() {
       alert("No captured image available! Please capture an image first.");
       return;
     }
-    $.post("http://192.168.1.27:5000/segment", { img: capturedData })
+    $.post("http://localhost:5001/segment", { img: capturedData })
       .done(data => {
         const segments = data.segments || [];
         for (let i = 0; i < 10; i++) {
@@ -151,7 +151,7 @@ $(document).ready(function() {
 
   // Predict a single segmented digit; returns the AJAX promise
   function predictSegment(index, type) {
-    return $.post("http://192.168.1.27:5000/predict", { img: segmentedData[index], type, net: "lenet" })
+    return $.post("http://192.168.2.99:5000/predict", { img: segmentedData[index], type, net: "lenet" })
       .done(data => updateSegmentSlot(data, index, type))
       .fail(err => console.error("Segmented digit predict failed:", err));
   }
